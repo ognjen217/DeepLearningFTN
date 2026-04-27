@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stable-icnn-physics"
+version = "0.1.0"
+description = "Stable ICNN dynamics models for physical systems"
+requires-python = ">=3.9"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "scipy",
+    "sympy",
+    "torch",
+]
+
+[tool.setuptools.packages.find]
+include = ["stable_icnn_physics*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
