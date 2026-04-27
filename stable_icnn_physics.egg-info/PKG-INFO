@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: stable-icnn-physics
+Version: 0.1.0
+Summary: Stable ICNN dynamics models for physical systems
+Requires-Python: >=3.9
+Requires-Dist: matplotlib
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: sympy
+Requires-Dist: torch

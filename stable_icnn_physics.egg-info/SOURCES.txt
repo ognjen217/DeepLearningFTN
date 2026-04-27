@@ -1,0 +1,16 @@
+README.md
+pyproject.toml
+stable_icnn_physics/__init__.py
+stable_icnn_physics/data.py
+stable_icnn_physics/eval.py
+stable_icnn_physics/models.py
+stable_icnn_physics/plotting.py
+stable_icnn_physics/systems.py
+stable_icnn_physics/train.py
+stable_icnn_physics.egg-info/PKG-INFO
+stable_icnn_physics.egg-info/SOURCES.txt
+stable_icnn_physics.egg-info/dependency_links.txt
+stable_icnn_physics.egg-info/requires.txt
+stable_icnn_physics.egg-info/top_level.txt
+tests/test_models.py
+tests/test_systems.py
