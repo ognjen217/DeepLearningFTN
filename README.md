@@ -45,3 +45,22 @@ The first examples are intentionally small enough for CPU coursework runs. Use t
 configuration cells to change the physical system, system parameters, model sizes, and training
 settings.
 
+## Physical Systems
+
+Implemented systems:
+
+- `MassSpringDamper`: linear damped oscillator, stable to the origin.
+- `DampedPendulum`: 1-link analytic pendulum and n-link SymPy/Kane-method pendulum.
+- `VanDerPolOscillator`: nonlinear oscillator with a stable limit cycle.
+
+For Van der Pol experiments, set this in the notebook configuration cells:
+
+```python
+SYSTEM_NAME = "vanderpol_mu1"
+system = VanDerPolOscillator(mu=1.0)
+```
+
+Note: the stable ICNN dynamics model is globally stable to an equilibrium point, while the
+standard Van der Pol oscillator has a stable limit cycle and an unstable origin. This makes it a
+useful nonlinear stress test, but also exposes a real limitation of this specific stable-dynamics
+model class.

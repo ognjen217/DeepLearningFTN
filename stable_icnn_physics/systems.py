@@ -57,6 +57,52 @@ class MassSpringDamper:
     def state_error(self, x_true: np.ndarray, x_pred: np.ndarray) -> np.ndarray:
         return np.sum((x_true - x_pred) ** 2, axis=-1)
 
+    def wrap_state(self, x: np.ndarray) -> np.ndarray:
+        return x
+
+
+@dataclass
+class VanDerPolOscillator:
+    """Van der Pol oscillator.
+
+    State is `[position, velocity]`, with dynamics:
+
+    `position_dot = velocity`
+    `velocity_dot = mu * (1 - position**2) * velocity - position`
+
+    For `mu > 0`, the origin is unstable and trajectories approach a stable
+    limit cycle. This is useful as a nonlinear benchmark, but it is not a
+    perfect match for dynamics architectures that are globally stable to the
+    origin.
+    """
+
+    mu: float = 1.0
+    position_range: tuple[float, float] = (-3.0, 3.0)
+    velocity_range: tuple[float, float] = (-4.0, 4.0)
+
+    @property
+    def state_dim(self) -> int:
+        return 2
+
+    def rhs(self, x: np.ndarray) -> np.ndarray:
+        x = _as_batch(x, self.state_dim)
+        pos = x[:, 0]
+        vel = x[:, 1]
+        acc = self.mu * (1.0 - pos**2) * vel - pos
+        return np.stack([vel, acc], axis=1).astype(np.float32)
+
+    def sample_states(self, n: int, split: str = "train", seed: int = 0) -> np.ndarray:
+        rng = np.random.default_rng(_split_seed(seed, split))
+        pos = rng.uniform(*self.position_range, size=n)
+        vel = rng.uniform(*self.velocity_range, size=n)
+        return np.stack([pos, vel], axis=1).astype(np.float32)
+
+    def state_error(self, x_true: np.ndarray, x_pred: np.ndarray) -> np.ndarray:
+        return np.sum((x_true - x_pred) ** 2, axis=-1)
+
+    def wrap_state(self, x: np.ndarray) -> np.ndarray:
+        return x
+
 
 @dataclass
 class DampedPendulum:
