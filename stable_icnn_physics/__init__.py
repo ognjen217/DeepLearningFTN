@@ -1,9 +1,18 @@
 """Stable ICNN dynamics models for physical systems."""
 
-from .systems import DampedPendulum, MassSpringDamper, PhysicalSystem, VanDerPolOscillator
+from .systems import (
+    CustomStateSpaceSystem,
+    DampedPendulum,
+    MassSpringDamper,
+    PhysicalSystem,
+    VanDerPolOscillator,
+    available_systems,
+    make_system,
+)
 
 __all__ = [
     "BaselineDynamicsMLP",
+    "CustomStateSpaceSystem",
     "DampedPendulum",
     "ICNN",
     "MassSpringDamper",
@@ -13,6 +22,9 @@ __all__ = [
     "ReHU",
     "StableDynamics",
     "VanDerPolOscillator",
+    "available_systems",
+    "build_stable_model",
+    "make_system",
 ]
 
 
@@ -24,6 +36,7 @@ def __getattr__(name):
         "PositiveDefiniteLyapunov",
         "ReHU",
         "StableDynamics",
+        "build_stable_model",
     }:
         from . import models
 

@@ -2,26 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
+from .integrators import rk4_step_numpy, simulate_autonomous_system
 from .systems import PhysicalSystem
 
 
-def rk4_step_numpy(rhs, x: np.ndarray, dt: float) -> np.ndarray:
-    k1 = rhs(x)
-    k2 = rhs(x + 0.5 * dt * k1)
-    k3 = rhs(x + 0.5 * dt * k2)
-    k4 = rhs(x + dt * k3)
-    return x + (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4)
-
-
 def rollout_system(system: PhysicalSystem, x0: np.ndarray, steps: int, dt: float) -> np.ndarray:
-    x = np.asarray(x0, dtype=np.float32)
-    traj = np.zeros((steps + 1, *x.shape), dtype=np.float32)
-    traj[0] = x
-    for i in range(steps):
-        x = rk4_step_numpy(system.rhs, x, dt)
-        x = system.wrap_state(x)
-        traj[i + 1] = x
-    return traj
+    return simulate_autonomous_system(system, x0=x0, steps=steps, dt=dt, method="rk4")
 
 
 def rollout_model(
