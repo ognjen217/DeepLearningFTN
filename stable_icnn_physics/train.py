@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -24,6 +25,7 @@ def train_derivative_model(
     device: str | torch.device | None = None,
     checkpoint_path: str | Path | None = None,
     print_every: int = 25,
+    use_amp: bool = False,
 ) -> TrainHistory:
     """Train a model on `(x, xdot)` derivative pairs."""
 
@@ -31,7 +33,15 @@ def train_derivative_model(
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     loss_fn = nn.MSELoss()
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+    pin = device.type == "cuda"
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=pin)
+
+    amp_ctx = (
+        torch.autocast(device.type, dtype=torch.bfloat16)
+        if use_amp and device.type == "cuda"
+        else nullcontext()
+    )
 
     history = TrainHistory(train_loss=[], test_loss=[])
     for epoch in range(1, epochs + 1):
@@ -39,11 +49,12 @@ def train_derivative_model(
         total = 0.0
         count = 0
         for x, y in train_loader:
-            x = x.to(device)
-            y = y.to(device)
-            optimizer.zero_grad()
-            pred = model(x)
-            loss = loss_fn(pred, y)
+            x = x.to(device, non_blocking=pin)
+            y = y.to(device, non_blocking=pin)
+            optimizer.zero_grad(set_to_none=True)
+            with amp_ctx:
+                pred = model(x)
+                loss = loss_fn(pred, y)
             loss.backward()
             optimizer.step()
             total += loss.detach().item() * x.shape[0]
@@ -75,13 +86,14 @@ def evaluate_derivative_mse(
     was_training = model.training
     model.eval()
     model.to(device)
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    pin = device.type == "cuda"
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, pin_memory=pin)
     loss_fn = nn.MSELoss(reduction="sum")
     total = 0.0
     count = 0
     for x, y in loader:
-        x = x.to(device)
-        y = y.to(device)
+        x = x.to(device, non_blocking=pin)
+        y = y.to(device, non_blocking=pin)
         # StableDynamics computes grad V(x), so evaluation still needs autograd.
         with torch.enable_grad():
             pred = model(x)
