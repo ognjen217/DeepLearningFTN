@@ -1,0 +1,15 @@
+{
+  "system_name": "damped_pendulum_n4",
+  "dataset_mode": "trajectory_derivative",
+  "derivative_mse_baseline": 7.67520389415882,
+  "derivative_mse_stable": 7.662313193950977,
+  "final_rollout_error_baseline": 0.24838292598724365,
+  "final_rollout_error_stable": 29345050.0,
+  "mean_rollout_error_baseline": 15.821115493774414,
+  "mean_rollout_error_stable": 9705726.0,
+  "lyapunov_max_violation": 0.0017735064029693604,
+  "lyapunov_fraction_satisfied": 0.97412109375,
+  "rollout_steps": 300,
+  "dt": 0.02,
+  "n_rollouts": 16
+}

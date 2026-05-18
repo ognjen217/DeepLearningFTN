@@ -71,7 +71,9 @@ def train_derivative_model(
     if checkpoint_path:
         checkpoint_path = Path(checkpoint_path)
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
-        torch.save({"model_state": model.state_dict(), "history": history.__dict__}, checkpoint_path)
+        # Unwrap torch.compile so checkpoints load into uncompiled models.
+        inner = getattr(model, "_orig_mod", model)
+        torch.save({"model_state": inner.state_dict(), "history": history.__dict__}, checkpoint_path)
 
     return history
 

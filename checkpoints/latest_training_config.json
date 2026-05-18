@@ -1,0 +1,47 @@
+{
+  "stable_checkpoint_path": "/home/operic/DeepLearningFTN/checkpoints/damped_pendulum_n4_trajectory_derivative_stable.pt",
+  "baseline_checkpoint_path": "/home/operic/DeepLearningFTN/checkpoints/damped_pendulum_n4_trajectory_derivative_baseline.pt",
+  "dataset_config_path": "/home/operic/DeepLearningFTN/data/cache/latest_dataset_config.json",
+  "hyperparameters": {
+    "epochs": 200,
+    "batch_size": 256,
+    "learning_rate": 0.001,
+    "hidden": 100,
+    "depth": 2,
+    "lyapunov_hidden": 60,
+    "lyapunov_eps": 0.01,
+    "alpha": 0.001,
+    "rehu_width": 0.01
+  },
+  "state_dim": 8,
+  "system": {
+    "name": "damped_pendulum_n4",
+    "state_dim": 8,
+    "params": {
+      "n_links": 4,
+      "friction": 0.3,
+      "gravity": 9.81,
+      "lengths": null,
+      "masses": 1.0,
+      "angle_range": [
+        -3.141592653589793,
+        3.141592653589793
+      ],
+      "velocity_range": [
+        -3.141592653589793,
+        3.141592653589793
+      ]
+    },
+    "angle_indices": [
+      0,
+      1,
+      2,
+      3
+    ]
+  },
+  "dataset_mode": "trajectory_derivative",
+  "metrics": {
+    "stable_test_mse": 7.662313193950977,
+    "baseline_test_mse": 7.67520389415882
+  }
+}

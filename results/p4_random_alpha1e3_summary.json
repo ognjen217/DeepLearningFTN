@@ -1,0 +1,13 @@
+{
+  "experiment": "p4_random_alpha1e3",
+  "system": "damped_pendulum_4",
+  "alpha": 0.001,
+  "derivative_mse_stable": 16.76562822265625,
+  "derivative_mse_baseline": 16.276835546875,
+  "final_rollout_error_stable": 360.4232177734375,
+  "final_rollout_error_baseline": 13.138297080993652,
+  "mean_rollout_error_stable": 240.0646514892578,
+  "mean_rollout_error_baseline": 17.737369537353516,
+  "lyapunov_max_violation": 1.5100464224815369e-05,
+  "lyapunov_fraction_satisfied": 0.9990234375
+}
