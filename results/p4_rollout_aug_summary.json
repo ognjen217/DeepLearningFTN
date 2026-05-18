@@ -1,0 +1,12 @@
+{
+  "experiment": "p4_rollout_aug",
+  "alpha": 1e-05,
+  "n_rollout_train_trajs": 500,
+  "n_rollout_steps": 300,
+  "final_rollout_error_stable": 0.5278683304786682,
+  "final_rollout_error_fhat": 0.5771927237510681,
+  "mean_rollout_error_stable": 11.505570411682129,
+  "lyapunov_max_violation": 1.1942829587496817e-06,
+  "lyapunov_fraction_satisfied": 1.0,
+  "projection_fire_rate": 0.249375
+}

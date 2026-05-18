@@ -1,0 +1,16 @@
+{
+  "experiment": "p4_random_large_e500_alpha1e5",
+  "system": "damped_pendulum_4",
+  "alpha": 1e-05,
+  "epochs": 500,
+  "hidden": 200,
+  "depth": 3,
+  "derivative_mse_stable": 3.6937973876953123,
+  "derivative_mse_baseline": 3.713862353515625,
+  "final_rollout_error_stable": 377.9120788574219,
+  "final_rollout_error_baseline": 1.6844069957733154,
+  "mean_rollout_error_stable": 281.4845886230469,
+  "mean_rollout_error_baseline": 10.812589645385742,
+  "lyapunov_max_violation": 1.632963540032506e-05,
+  "lyapunov_fraction_satisfied": 0.99951171875
+}

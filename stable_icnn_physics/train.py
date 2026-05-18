@@ -78,6 +78,80 @@ def train_derivative_model(
     return history
 
 
+def train_lyapunov_only(
+    model: nn.Module,
+    train_dataset: TensorDataset,
+    epochs: int = 200,
+    batch_size: int = 256,
+    learning_rate: float = 1e-3,
+    device: str | torch.device | None = None,
+    checkpoint_path: str | Path | None = None,
+    print_every: int = 25,
+) -> TrainHistory:
+    """Freeze fhat, train only V to minimise Lyapunov violations.
+
+    Loss: mean(relu(grad_V · fhat(x) + alpha * V(x))^2)
+
+    This is called after the stable model has already been trained with the
+    joint MSE loss so that fhat is good. Re-training V with an explicit
+    violation penalty forces grad_V to point in the right direction everywhere
+    in the training distribution, not just implicitly through projection noise.
+    """
+    import torch.nn.functional as F
+
+    device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    model.to(device)
+
+    for p in model.fhat.parameters():
+        p.requires_grad_(False)
+    model.fhat.eval()
+
+    optimizer = torch.optim.Adam(model.V.parameters(), lr=learning_rate)
+
+    pin = device.type == "cuda"
+    loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=pin)
+
+    alpha = model.alpha
+
+    history = TrainHistory(train_loss=[], test_loss=[])
+    for epoch in range(1, epochs + 1):
+        model.V.train()
+        total = 0.0
+        count = 0
+        for x, _ in loader:
+            x = x.to(device, non_blocking=pin).requires_grad_(True)
+            optimizer.zero_grad(set_to_none=True)
+            with torch.enable_grad():
+                fx = model.fhat(x)
+                vx = model.V(x)
+                grad_v = torch.autograd.grad(vx.sum(), x, create_graph=True)[0]
+                violation = (grad_v * fx).sum(dim=1, keepdim=True) + alpha * vx
+                loss = F.relu(violation).pow(2).mean()
+            loss.backward()
+            optimizer.step()
+            total += loss.detach().item() * x.shape[0]
+            count += x.shape[0]
+
+        train_loss = total / max(count, 1)
+        history.train_loss.append(train_loss)
+        history.test_loss.append(train_loss)
+
+        if print_every and (epoch == 1 or epoch % print_every == 0 or epoch == epochs):
+            print(f"epoch={epoch:04d} lyap_violation_loss={train_loss:.6g}")
+
+    for p in model.fhat.parameters():
+        p.requires_grad_(True)
+    model.fhat.train()
+
+    if checkpoint_path:
+        checkpoint_path = Path(checkpoint_path)
+        checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+        inner = getattr(model, "_orig_mod", model)
+        torch.save({"model_state": inner.state_dict(), "history": history.__dict__}, checkpoint_path)
+
+    return history
+
+
 def evaluate_derivative_mse(
     model: nn.Module,
     dataset: TensorDataset,
