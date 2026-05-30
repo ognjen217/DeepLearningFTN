@@ -1,35 +1,35 @@
 {
   "baseline": {
-    "final_rmse": 0.03248705714941025,
-    "mean_rmse": 0.016049843281507492,
-    "max_rmse": 0.03248705714941025,
+    "final_rmse": 0.03514992445707321,
+    "mean_rmse": 0.018045153468847275,
+    "max_rmse": 0.03514992445707321,
     "true_energy_start": 0.00107477861456573,
     "true_energy_end": 0.0010482498910278082,
     "pred_energy_start": 0.00107477861456573,
-    "pred_energy_end": 0.0018141460604965687,
+    "pred_energy_end": 0.0020351200364530087,
     "true_mass_start": 1.1641532182693481e-10,
     "true_mass_end": -2.3283064365386963e-10,
     "pred_mass_start": 1.1641532182693481e-10,
-    "pred_mass_end": 0.004575351253151894
+    "pred_mass_end": -0.000354342395439744
   },
   "energy_projected": {
-    "final_rmse": 0.026807263493537903,
-    "mean_rmse": 0.016816237941384315,
-    "max_rmse": 0.026807263493537903,
+    "final_rmse": 0.03599996864795685,
+    "mean_rmse": 0.02121427282691002,
+    "max_rmse": 0.03599996864795685,
     "true_energy_start": 0.00107477861456573,
     "true_energy_end": 0.0010482498910278082,
     "pred_energy_start": 0.00107477861456573,
-    "pred_energy_end": 0.0011645469348877668,
+    "pred_energy_end": 0.0015530050732195377,
     "true_mass_start": 1.1641532182693481e-10,
     "true_mass_end": -2.3283064365386963e-10,
     "pred_mass_start": 1.1641532182693481e-10,
-    "pred_mass_end": -0.0007171900942921638
+    "pred_mass_end": -0.0020636082626879215
   },
   "projection": {
-    "projection_fire_rate": 0.16,
-    "correction_norm_mean": 0.016905201198533178,
-    "correction_norm_max": 0.35174253582954407,
-    "nominal_violation_mean": -0.0027626898275082113,
-    "nominal_violation_max": 0.0009325600112788379
+    "projection_fire_rate": 0.77,
+    "correction_norm_mean": 1.9991719536855816,
+    "correction_norm_max": 7.955531597137451,
+    "nominal_violation_mean": 0.005001533370232209,
+    "nominal_violation_max": 0.021647391840815544
   }
 }
