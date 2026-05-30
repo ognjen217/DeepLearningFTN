@@ -1,0 +1,51 @@
+{
+  "config": {
+    "tag": "core_p4_rollout_aug_icnn",
+    "system_name": "damped_pendulum_4",
+    "system_kwargs": {
+      "friction": 0.3,
+      "gravity": 9.81
+    },
+    "dt": 0.02,
+    "steps": 300,
+    "train_samples": 50000,
+    "test_samples": 10000,
+    "eval_trajs": 16,
+    "hidden": 200,
+    "depth": 3,
+    "lyapunov_hidden": 100,
+    "lyapunov_eps": 0.01,
+    "alpha": 1e-05,
+    "rehu_width": 0.01,
+    "epochs": 200,
+    "batch_size": 256,
+    "lr": 0.001,
+    "prefer_existing": true,
+    "stable_ckpt_override": "p4_rollout_aug_stable.pt",
+    "baseline_ckpt_override": "p4_random_large_e500_alpha1e5_baseline.pt"
+  },
+  "stable_ckpt": "checkpoints/p4_rollout_aug_stable.pt",
+  "baseline_ckpt": "checkpoints/p4_random_large_e500_alpha1e5_baseline.pt",
+  "derivative_mse_stable": 3.694642626953125,
+  "derivative_mse_baseline": 3.716908154296875,
+  "rollout_stable": {
+    "final": 0.5062050223350525,
+    "mean": 11.585735321044922,
+    "max": 160.53314208984375
+  },
+  "rollout_baseline": {
+    "final": 1.6673667430877686,
+    "mean": 10.803535461425781,
+    "max": 139.35108947753906
+  },
+  "lyapunov_max_violation_projected": 5.495385266840458e-07,
+  "lyapunov_fraction_satisfied_projected": 1.0,
+  "projection_fire_rate": 0.22875,
+  "correction_norm_mean": 0.07983943819999695,
+  "correction_norm_p95": 0.661532461643219,
+  "correction_norm_max": 6.978487968444824,
+  "nominal_violation_mean": -0.8169721364974976,
+  "nominal_violation_max": 10.335290908813477,
+  "discrete_dV_frac_nonpositive": 0.9408333333333333,
+  "discrete_dV_max": 0.044003963470458984
+}

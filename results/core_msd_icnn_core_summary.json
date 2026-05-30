@@ -1,0 +1,48 @@
+{
+  "config": {
+    "tag": "core_msd_icnn",
+    "system_name": "mass_spring_damper",
+    "system_kwargs": {},
+    "dt": 0.05,
+    "steps": 300,
+    "train_samples": 20000,
+    "test_samples": 5000,
+    "eval_trajs": 32,
+    "hidden": 100,
+    "depth": 2,
+    "lyapunov_hidden": 60,
+    "lyapunov_eps": 0.01,
+    "alpha": 0.001,
+    "rehu_width": 0.01,
+    "epochs": 150,
+    "batch_size": 256,
+    "lr": 0.001,
+    "prefer_existing": true,
+    "stable_ckpt_override": null,
+    "baseline_ckpt_override": null
+  },
+  "stable_ckpt": "checkpoints/core_msd_icnn_stable.pt",
+  "baseline_ckpt": "checkpoints/core_msd_icnn_baseline.pt",
+  "derivative_mse_stable": 2.5896791368722916e-05,
+  "derivative_mse_baseline": 1.767203826457262e-05,
+  "rollout_stable": {
+    "final": 5.2813466027146205e-05,
+    "mean": 4.3668118451023474e-05,
+    "max": 8.640767191536725e-05
+  },
+  "rollout_baseline": {
+    "final": 1.815648101910483e-05,
+    "mean": 3.1151779694482684e-05,
+    "max": 4.412740599946119e-05
+  },
+  "lyapunov_max_violation_projected": 5.358015187084675e-08,
+  "lyapunov_fraction_satisfied_projected": 1.0,
+  "projection_fire_rate": 0.05708333333333333,
+  "correction_norm_mean": 0.0005294946604408324,
+  "correction_norm_p95": 0.001762619474902749,
+  "correction_norm_max": 0.038203317672014236,
+  "nominal_violation_mean": -0.6447979211807251,
+  "nominal_violation_max": 0.41087397933006287,
+  "discrete_dV_frac_nonpositive": 0.9734375,
+  "discrete_dV_max": 0.0008837580680847168
+}
