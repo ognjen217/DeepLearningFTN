@@ -23,6 +23,128 @@ def make_pair_dataset(x: np.ndarray, y: np.ndarray, device_dtype=np.float32) -> 
     )
 
 
+def make_derivative_dataset(x: np.ndarray, y: np.ndarray, dt: float, device_dtype=np.float32) -> TensorDataset:
+    """Create ``(x, xdot)`` pairs where ``xdot = (y - x) / dt``.
+
+    This is usually a better objective for small-dt PDE data than directly
+    minimizing ``MSE(x + dt*f(x), y)``. The next-step objective scales gradients
+    by ``dt**2`` and can make the identity/zero-dynamics solution look too good.
+    """
+    x_arr = np.asarray(x, dtype=device_dtype)
+    y_arr = np.asarray(y, dtype=device_dtype)
+    xdot = (y_arr - x_arr) / float(dt)
+    return TensorDataset(torch.from_numpy(x_arr), torch.from_numpy(xdot.astype(device_dtype)))
+
+
+def train_derivative_model(
+    dynamics: nn.Module,
+    train_dataset: TensorDataset,
+    val_dataset: TensorDataset | None = None,
+    epochs: int = 50,
+    batch_size: int = 64,
+    learning_rate: float = 1.0e-3,
+    weight_decay: float = 1.0e-5,
+    device: str | torch.device | None = None,
+    checkpoint_path: str | Path | None = None,
+    print_every: int = 5,
+    use_amp: bool = False,
+    grad_clip_norm: float | None = 1.0,
+) -> TrainHistory:
+    """Train a dynamics model on explicit derivative targets ``xdot``."""
+    device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    dynamics.to(device)
+
+    optimizer = torch.optim.AdamW(dynamics.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max(epochs, 1), eta_min=learning_rate * 0.1)
+    loss_fn = nn.MSELoss()
+    scaler = torch.amp.GradScaler("cuda", enabled=use_amp and device.type == "cuda")
+
+    pin = device.type == "cuda"
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=pin)
+    val_loader = None if val_dataset is None else DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=pin)
+
+    history = TrainHistory(train_loss=[], val_loss=[])
+    best_val = float("inf")
+    best_state = None
+
+    for epoch in range(1, epochs + 1):
+        dynamics.train()
+        total, count = 0.0, 0
+
+        for x, xdot in train_loader:
+            x = x.to(device, non_blocking=pin)
+            xdot = xdot.to(device, non_blocking=pin)
+            optimizer.zero_grad(set_to_none=True)
+
+            with torch.amp.autocast(device_type="cuda", enabled=use_amp and device.type == "cuda"):
+                with torch.enable_grad():
+                    pred = dynamics(x)
+                    loss = loss_fn(pred, xdot)
+
+            scaler.scale(loss).backward()
+            if grad_clip_norm is not None:
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(dynamics.parameters(), grad_clip_norm)
+            scaler.step(optimizer)
+            scaler.update()
+
+            total += loss.detach().item() * x.shape[0]
+            count += x.shape[0]
+
+        scheduler.step()
+        train_loss = total / max(count, 1)
+        val_loss = evaluate_derivative_mse(dynamics, val_loader, device) if val_loader is not None else train_loss
+        history.train_loss.append(train_loss)
+        history.val_loss.append(val_loss)
+
+        if val_loss < best_val:
+            best_val = val_loss
+            best_state = {k: v.detach().cpu().clone() for k, v in dynamics.state_dict().items()}
+
+        if print_every and (epoch == 1 or epoch % print_every == 0 or epoch == epochs):
+            print(f"epoch={epoch:04d} deriv_train={train_loss:.6g} deriv_val={val_loss:.6g} best={best_val:.6g}")
+
+    if best_state is not None:
+        dynamics.load_state_dict(best_state)
+
+    if checkpoint_path:
+        checkpoint_path = Path(checkpoint_path)
+        checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+        torch.save({"model_state": dynamics.state_dict(), "history": history.__dict__}, checkpoint_path)
+
+    return history
+
+
+def evaluate_derivative_mse(
+    dynamics: nn.Module,
+    loader: DataLoader | TensorDataset,
+    device: str | torch.device | None = None,
+) -> float:
+    """Evaluate derivative MSE against explicit ``xdot`` targets."""
+    device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    dynamics.to(device)
+    was_training = dynamics.training
+    dynamics.eval()
+
+    if isinstance(loader, TensorDataset):
+        loader = DataLoader(loader, batch_size=128, shuffle=False, pin_memory=device.type == "cuda")
+
+    loss_fn = nn.MSELoss(reduction="sum")
+    total, count = 0.0, 0
+    pin = device.type == "cuda"
+
+    for x, xdot in loader:
+        x = x.to(device, non_blocking=pin)
+        xdot = xdot.to(device, non_blocking=pin)
+        with torch.enable_grad():
+            pred = dynamics(x)
+        total += loss_fn(pred, xdot).item()
+        count += xdot.numel()
+
+    dynamics.train(was_training)
+    return total / max(count, 1)
+
+
 def train_next_step_model(
     dynamics: nn.Module,
     train_dataset: TensorDataset,
@@ -38,10 +160,11 @@ def train_next_step_model(
     use_amp: bool = False,
     grad_clip_norm: float | None = 1.0,
 ) -> TrainHistory:
-    """Train a derivative model through the one-step update ``x + dt*f(x)``.
+    """Train via the one-step objective ``MSE(x + dt*f(x), x_next)``.
 
-    This keeps the model conceptually continuous-time, but the supervised loss is
-    directly on the next state from the reference solver.
+    Kept for ablation/debugging. For the SWE experiments, prefer
+    :func:`train_derivative_model` because the small ``dt`` makes the identity
+    predictor a strong local minimum for this objective.
     """
     device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
     dynamics.to(device)
@@ -138,7 +261,7 @@ def evaluate_next_step_mse(
     return total / max(count, 1)
 
 
-def split_tensor_dataset(dataset: TensorDataset, val_fraction: float = 0.1, seed: int = 0) -> tuple[TensorDataset, TensorDataset]:
+def split_tensor_dataset(dataset: TensorDataset, val_fraction: float = 0.1, seed: int = 0):
     """Deterministically split a TensorDataset into train/val subsets."""
     if not 0.0 < val_fraction < 1.0:
         raise ValueError("val_fraction must be between 0 and 1")
