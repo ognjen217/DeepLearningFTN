@@ -16,11 +16,4 @@ outputs/
 runs/
 
 # Large / generated files
-*.pt
-*.pth
-*.ckpt
-*.prof
-*.gif
-*.mp4
-*.png
-*.csv
+
