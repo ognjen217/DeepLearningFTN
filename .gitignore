@@ -11,9 +11,4 @@ venv/
 # Generated experiment artifacts
 data/cache/
 checkpoints/
-results/
-outputs/
 runs/
-
-# Large / generated files
-
