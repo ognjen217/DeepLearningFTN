@@ -39,9 +39,21 @@ class ConvResNetDynamics(nn.Module):
 
     Input and output shape: ``(batch, 3, ny, nx)``.
     The network predicts a continuous-time derivative ``xdot = fhat(x)``.
+
+    Important: the output layer is *not* zero-initialized by default. When the
+    training loss is written as ``MSE(x + dt*f(x), x_next)`` and ``dt`` is small,
+    a zero derivative gives a deceptively good identity predictor and gradients
+    are scaled by ``dt**2``. That failure mode makes the learned dynamics almost
+    static. Use explicit derivative-target training for SWE experiments.
     """
 
-    def __init__(self, in_channels: int = 3, hidden_channels: int = 64, depth: int = 4):
+    def __init__(
+        self,
+        in_channels: int = 3,
+        hidden_channels: int = 64,
+        depth: int = 4,
+        zero_init_output: bool = False,
+    ):
         super().__init__()
         if depth < 1:
             raise ValueError("depth must be at least 1")
@@ -52,9 +64,9 @@ class ConvResNetDynamics(nn.Module):
         self.blocks = nn.Sequential(*[ResidualBlock(hidden_channels) for _ in range(depth)])
         self.out_proj = nn.Conv2d(hidden_channels, in_channels, kernel_size=3, padding=1)
 
-        # Start close to zero derivative. This usually makes early rollout safer.
-        nn.init.zeros_(self.out_proj.weight)
-        nn.init.zeros_(self.out_proj.bias)
+        if zero_init_output:
+            nn.init.zeros_(self.out_proj.weight)
+            nn.init.zeros_(self.out_proj.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         z = self.in_proj(x)
@@ -146,8 +158,13 @@ class EnergyProjectedDynamics(nn.Module):
         }
 
 
-def make_cnn_dynamics(hidden_channels: int = 64, depth: int = 4) -> ConvResNetDynamics:
-    return ConvResNetDynamics(in_channels=3, hidden_channels=hidden_channels, depth=depth)
+def make_cnn_dynamics(hidden_channels: int = 64, depth: int = 4, zero_init_output: bool = False) -> ConvResNetDynamics:
+    return ConvResNetDynamics(
+        in_channels=3,
+        hidden_channels=hidden_channels,
+        depth=depth,
+        zero_init_output=zero_init_output,
+    )
 
 
 def make_energy_projected_cnn(
@@ -156,7 +173,8 @@ def make_energy_projected_cnn(
     gravity: float = 9.81,
     depth_water: float = 1.0,
     alpha: float = 1.0e-5,
+    zero_init_output: bool = False,
 ) -> EnergyProjectedDynamics:
-    fhat = make_cnn_dynamics(hidden_channels=hidden_channels, depth=depth)
+    fhat = make_cnn_dynamics(hidden_channels=hidden_channels, depth=depth, zero_init_output=zero_init_output)
     energy = PhysicalEnergy(gravity=gravity, depth=depth_water)
     return EnergyProjectedDynamics(fhat=fhat, energy=energy, alpha=alpha)
