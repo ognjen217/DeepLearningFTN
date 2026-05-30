@@ -7,3 +7,20 @@ data/cache/
 outputs/
 runs/
 venv/
+
+# Generated experiment artifacts
+data/cache/
+checkpoints/
+results/
+outputs/
+runs/
+
+# Large / generated files
+*.pt
+*.pth
+*.ckpt
+*.prof
+*.gif
+*.mp4
+*.png
+*.csv
