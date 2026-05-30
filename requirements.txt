@@ -4,5 +4,6 @@ scipy
 sympy
 torch
 jupyter
+plotly
+pandas
 pytest
-
