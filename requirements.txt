@@ -4,6 +4,7 @@ scipy
 sympy
 torch
 jupyter
+nbformat>=4.2
 plotly
 pandas
 pytest
